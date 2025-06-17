@@ -580,6 +580,7 @@ class DrivingPrivilege {
     return DrivingPrivilege(
         vehicleCategoryCode: vehicleCategoryCode,
         issueDate: issueDate,
+        codes: codes,
         expiryDate: expiryDate);
   }
 
