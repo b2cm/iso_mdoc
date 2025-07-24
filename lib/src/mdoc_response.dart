@@ -381,6 +381,54 @@ class NFCHandover implements Handover {
   }
 }
 
+class OpenID4VPHandover implements Handover {
+  List<int> handoverInfoHash;
+
+  OpenID4VPHandover({required this.handoverInfoHash});
+
+  factory OpenID4VPHandover.fromHandoverInfo(
+      OpenID4VPHandoverInfo handoverInfo) {
+    return OpenID4VPHandover(
+        handoverInfoHash: pc.SHA256Digest()
+            .process(Uint8List.fromList(handoverInfo.toEncodedCbor())));
+  }
+
+  @override
+  CborList toCbor() {
+    return CborList(
+        [CborString('OpenID4VPHandover'), CborBytes(handoverInfoHash)]);
+  }
+
+  @override
+  List<int> toEncodedCbor() {
+    return cborEncode(toCbor());
+  }
+}
+
+class OpenID4VPHandoverInfo {
+  String clientId, nonce, responseUri;
+  List<int>? jwkThumbprint;
+
+  OpenID4VPHandoverInfo(
+      {required this.clientId,
+      required this.nonce,
+      required this.responseUri,
+      this.jwkThumbprint});
+
+  CborList toCbor() {
+    return CborList([
+      CborString(clientId),
+      CborString(nonce),
+      jwkThumbprint == null ? CborNull() : CborBytes(jwkThumbprint!),
+      CborString(responseUri),
+    ]);
+  }
+
+  List<int> toEncodedCbor() {
+    return cborEncode(toCbor());
+  }
+}
+
 class OID4VPHandover implements Handover {
   List<int> clientIdHash, responseUriHash;
   String nonce;
