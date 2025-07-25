@@ -1,3 +1,7 @@
+## 1.6.0
+- fix bug in DrivingPrivileges class (thanks to @rhbrunetto)
+- add [OpenID4VPHandover from OID4VP 1.0](https://openid.net/specs/openid-4-verifiable-presentations-1_0.html#name-handover-and-sessiontranscr)
+
 ## 1.5.0
 - payload in sig_structure of cose_sign1 is always casted to CborBytes (thanks to @LuigiFiorillo)
 - update pointyCastle to 4.0.0
