@@ -405,6 +405,30 @@ class OpenID4VPHandover implements Handover {
   }
 }
 
+class OpenID4VPDCHandover implements Handover {
+  List<int> handoverInfoHash;
+
+  OpenID4VPDCHandover({required this.handoverInfoHash});
+
+  factory OpenID4VPDCHandover.fromHandoverInfo(
+      OpenID4VPDCHandoverInfo handoverInfo) {
+    return OpenID4VPDCHandover(
+        handoverInfoHash: pc.SHA256Digest()
+            .process(Uint8List.fromList(handoverInfo.toEncodedCbor())));
+  }
+
+  @override
+  CborList toCbor() {
+    return CborList(
+        [CborString('OpenID4VPDCAPIHandover'), CborBytes(handoverInfoHash)]);
+  }
+
+  @override
+  List<int> toEncodedCbor() {
+    return cborEncode(toCbor());
+  }
+}
+
 class OpenID4VPHandoverInfo {
   String clientId, nonce, responseUri;
   List<int>? jwkThumbprint;
@@ -421,6 +445,26 @@ class OpenID4VPHandoverInfo {
       CborString(nonce),
       jwkThumbprint == null ? CborNull() : CborBytes(jwkThumbprint!),
       CborString(responseUri),
+    ]);
+  }
+
+  List<int> toEncodedCbor() {
+    return cborEncode(toCbor());
+  }
+}
+
+class OpenID4VPDCHandoverInfo {
+  String origin, nonce;
+  List<int>? jwkThumbprint;
+
+  OpenID4VPDCHandoverInfo(
+      {required this.origin, required this.nonce, this.jwkThumbprint});
+
+  CborList toCbor() {
+    return CborList([
+      CborString(origin),
+      CborString(nonce),
+      jwkThumbprint == null ? CborNull() : CborBytes(jwkThumbprint!),
     ]);
   }
 

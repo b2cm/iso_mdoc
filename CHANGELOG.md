@@ -1,3 +1,7 @@
+## 1.7.0
+
+- add OpenId4VPHandover
+
 ## 1.6.0
 - fix bug in DrivingPrivileges class (thanks to @rhbrunetto)
 - add [OpenID4VPHandover from OID4VP 1.0](https://openid.net/specs/openid-4-verifiable-presentations-1_0.html#name-handover-and-sessiontranscr)
