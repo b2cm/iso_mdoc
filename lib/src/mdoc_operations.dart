@@ -66,25 +66,19 @@ FutureOr<bool> verifyMso(IssuerSignedObject signed) {
     hasher = pc.SHA256Digest();
   }
 
-  // compare hashes
-  bool equal = true;
-  signed.items.forEach((key, value) {
-    for (var i in value) {
-      var expectedHash = mso.valueDigest[key]?[i.digestId];
-      if (expectedHash != null) {
-        var hash = hasher.process(
-            Uint8List.fromList(cborEncode(i.toIssuerSignedItemBytes())));
-        if (!listEquals(expectedHash, hash.toList())) {
-          equal = false;
-          print('hash not match, key: ${i.digestId}');
-        }
+  // Every disclosed item must have a digest committed by the signed MSO.
+  for (var entry in signed.items.entries) {
+    for (var item in entry.value) {
+      var expectedHash = mso.valueDigest[entry.key]?[item.digestId];
+      if (expectedHash == null) {
+        return false;
+      }
+      var hash = hasher.process(
+          Uint8List.fromList(cborEncode(item.toIssuerSignedItemBytes())));
+      if (!listEquals(expectedHash, hash.toList())) {
+        return false;
       }
     }
-  });
-
-  if (!equal) {
-    print('hash not match');
-    return false;
   }
 
   var issuerPublicKey = CoseKey.fromCertificate(

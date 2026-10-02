@@ -335,6 +335,64 @@ void main() {
     expect(verifyMso(iss), isTrue);
   });
 
+  group('verifyMso digest binding', () {
+    IssuerSignedObject signedFromResponse() {
+      var parsed = DeviceResponse.fromCbor(hex.decode(response));
+      return parsed.documents!.first.issuerSigned;
+    }
+
+    test('rejects an altered disclosed value', () {
+      var signed = signedFromResponse();
+      var namespace = signed.items.keys.first;
+      var original = signed.items[namespace]!.first;
+      signed.items[namespace]![0] = IssuerSignedItem(
+        digestId: original.digestId,
+        random: original.random,
+        dataElementIdentifier: original.dataElementIdentifier,
+        dataElementValue: 'forged value',
+      );
+
+      var received = IssuerSignedObject.fromCbor(signed.toEncodedCbor());
+      expect(verifyMso(received), isFalse);
+    });
+
+    test('rejects a disclosed item with an uncommitted digest ID', () {
+      var signed = signedFromResponse();
+      var namespace = signed.items.keys.first;
+      var original = signed.items[namespace]!.first;
+      var mso = MobileSecurityObject.fromCbor(signed.issuerAuth.payload);
+      var unusedDigestId = 0;
+      while (mso.valueDigest[namespace]!.containsKey(unusedDigestId)) {
+        unusedDigestId++;
+      }
+      signed.items[namespace]![0] = IssuerSignedItem(
+        digestId: unusedDigestId,
+        random: original.random,
+        dataElementIdentifier: original.dataElementIdentifier,
+        dataElementValue: 'forged value',
+      );
+
+      var received = IssuerSignedObject.fromCbor(signed.toEncodedCbor());
+      expect(verifyMso(received), isFalse);
+    });
+
+    test('rejects a disclosed item in an uncommitted namespace', () {
+      var signed = signedFromResponse();
+      var original = signed.items.values.first.first;
+      signed.items['uncommitted.namespace'] = [
+        IssuerSignedItem(
+          digestId: original.digestId,
+          random: original.random,
+          dataElementIdentifier: original.dataElementIdentifier,
+          dataElementValue: 'forged value',
+        ),
+      ];
+
+      var received = IssuerSignedObject.fromCbor(signed.toEncodedCbor());
+      expect(verifyMso(received), isFalse);
+    });
+  });
+
   test('issuance all certs', () async {
     var certs = [
       readerCertEd25519,
